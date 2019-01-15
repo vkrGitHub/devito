@@ -70,7 +70,8 @@ class MemoryAllocator(object):
 
         c_pointer = ctypes.cast(c_pointer, np.ctypeslib.ndpointer(dtype=dtype,
                                                                   shape=shape))
-        pointer = np.ctypeslib.as_array(c_pointer, shape=shape)
+        
+        pointer = np.array(c_pointer, dtype=dtype, copy=False, order='C', subok=True)
 
         return (pointer, memfree_args)
 
@@ -357,7 +358,7 @@ class Data(np.ndarray):
     def __new__(cls, shape, dimensions, dtype, allocator=ALLOC_FLAT):
         assert len(shape) == len(dimensions)
         ndarray, memfree_args = allocator.alloc(shape, dtype)
-        obj = np.asarray(ndarray).view(cls)
+        obj = ndarray.view(cls)
         obj._allocator = allocator
         obj._memfree_args = memfree_args
         obj._modulo = tuple(True if i.is_Stepping else False for i in dimensions)

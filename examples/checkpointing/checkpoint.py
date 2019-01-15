@@ -65,14 +65,14 @@ class DevitoCheckpoint(Checkpoint):
         i_ptr_hi = 0
         for o in self.objects:
             i_ptr_hi = i_ptr_hi + o.size
-            ptr[i_ptr_lo:i_ptr_hi] = o.data.flatten()[:]
+            ptr[i_ptr_lo:i_ptr_hi] = np.ravel(o.data)[:]
             i_ptr_lo = i_ptr_hi
 
     def get_symbol_data(self, symbol, timestep):
         timestep += symbol.time_order - 1
         ptrs = []
         for i in range(symbol.time_order):
-            ptr = symbol.data[timestep -i, :, :]
+            ptr = symbol._data[timestep -i, :, :]
             ptrs.append(ptr)
         return ptrs
 
