@@ -329,6 +329,7 @@ class SubDomain(object):
     def __init__(self):
         if self.name is None:
             raise ValueError("SubDomain requires a `name`")
+        #self._n_domains = 1
         self._dimensions = None
 
     def __subdomain_finalize__(self, dimensions, shape):
