@@ -9,6 +9,8 @@ class SubyD(SubDomain):
     name = 'SubyD'
     def define(self, dimensions):
         x, y = dimensions
+        xi = SubDimension.middle('xi', x, 1, 1)
+        yi = SubDimension.middle('xi', x, 1, 1)
         return {x: ('middle', x0, x1), y: ('middle', y0, y1)}
     
 sd = SubyD()
