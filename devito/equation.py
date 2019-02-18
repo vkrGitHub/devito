@@ -87,20 +87,16 @@ class Eq(sympy.Eq):
 
     @cached_property
     def _symbolic_functions(self):
+        items = frozenset()
         try:
-            return self.lhs._symbolic_functions.union(self.rhs._symbolic_functions)
+            items = items.union(self.lhs._symbolic_functions)
         except AttributeError:
             pass
         try:
-            return self.lhs._symbolic_functions
+            items = items.union(self.lhs._symbolic_functions)
         except AttributeError:
             pass
-        try:
-            return self.rhs._symbolic_functions
-        except AttributeError:
-            return frozenset()
-        else:
-            TypeError('Failed to retrieve symbolic functions')
+        return items
 
     def xreplace(self, rules):
         """"""
