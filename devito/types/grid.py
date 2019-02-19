@@ -10,7 +10,7 @@ from devito.types.constant import Constant
 from devito.types.dimension import (Dimension, SpaceDimension, TimeDimension,
                                     SteppingDimension, SubDimension)
 
-__all__ = ['Grid', 'SubDomain']
+__all__ = ['Grid', 'SubDomain', 'SubDomains']
 
 
 class Grid(ArgProvider):
@@ -329,7 +329,6 @@ class SubDomain(object):
     def __init__(self):
         if self.name is None:
             raise ValueError("SubDomain requires a `name`")
-        #self._n_domains = 1
         self._dimensions = None
 
     def __subdomain_finalize__(self, dimensions, shape):
@@ -337,9 +336,11 @@ class SubDomain(object):
         sub_dimensions = []
         for k, v in self.define(dimensions).items():
             if isinstance(v, Dimension):
+                print('here?')
                 sub_dimensions.append(v)
             else:
                 try:
+                    
                     # Case ('middle', int, int)
                     side, thickness_left, thickness_right = v
                     if side != 'middle':
@@ -347,7 +348,9 @@ class SubDomain(object):
                     sub_dimensions.append(SubDimension.middle('%si' % k.name, k,
                                                               thickness_left,
                                                               thickness_right))
+                    print('or here?')
                 except ValueError:
+                    print('In here init?')
                     side, thickness = v
                     if side == 'left':
                         sub_dimensions.append(SubDimension.left('%sleft' % k.name, k,
@@ -357,6 +360,7 @@ class SubDomain(object):
                                                                  thickness))
                     else:
                         raise ValueError("Expected sides 'left|right', not `%s`" % side)
+                    print('or here2?')
         self._dimensions = tuple(sub_dimensions)
 
         # Compute the SubDomain shape
@@ -422,3 +426,40 @@ class Interior(SubDomain):
 
     def define(self, dimensions):
         return {d: ('middle', 1, 1) for d in dimensions}
+    
+class SubDomains(SubDomain):
+    
+    def __init__(self, **kwargs):
+        super(SubDomains, self).__init__()
+        n_domains = kwargs.get('n_domains', 1)
+        extent = kwargs.get('extent')
+        self._n_domains = n_domains
+        self._extent = extent
+
+    def __subdomain_finalize__(self, dimensions, shape):
+        super(SubDomains, self).__subdomain_finalize__(dimensions, shape)
+        n_domains = self.n_domains
+        indices = self.__indices_setup__(n_domains)
+        self._indices = indices
+
+    @property
+    def n_domains(self):
+        return self._n_domains
+
+    @property
+    def extent(self):
+        return self._extent
+
+    @classmethod
+    def __indices_setup__(self, n_domains):
+        if n_domains > 1:
+            indices = Dimension(name='n', spacing=1)
+            return indices
+        else:
+            # NOTE: Error maybe?
+            return ()
+
+    @property
+    def indices(self):
+        """The indices (aka dimensions) of the object."""
+        return self._indices
