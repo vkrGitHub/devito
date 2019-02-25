@@ -37,6 +37,11 @@ class PartialCluster(object):
     def __init__(self, exprs, ispace, dspace, atomics=None, guards=None):
         self._exprs = list(ClusterizedEq(i, ispace=ispace, dspace=dspace)
                            for i in as_tuple(exprs))
+
+        #print('going in here')
+        #from IPython import embed
+        #embed()       
+
         self._ispace = ispace
         self._dspace = dspace
         self._atomics = set(atomics or [])

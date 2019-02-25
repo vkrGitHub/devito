@@ -4,7 +4,7 @@ from devito import Grid
 from devito import SubDomain, SubDimension
 from devito.types import SubDomains
 
-from devito import TimeFunction, Eq, Constant
+from devito import TimeFunction, Eq, Constant, Operator
 
 from math import floor
 
@@ -39,6 +39,9 @@ f = TimeFunction(name='f', grid=grid)
 x, y = grid.dimensions
 
 eq = Eq(f, x, subdomain = grid.subdomains['MyDomains'])
+
+op = Operator(eq)
     
-from IPython import embed
-embed()
+#from IPython import embed
+#embed()
+print(op.ccode)

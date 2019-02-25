@@ -251,6 +251,10 @@ def clusterize(exprs):
 
             clusters.append(PartialCluster(scalars + [e], ispace, dspace))
 
+
+    from IPython import embed
+    embed()
+
     # Group PartialClusters together where possible
     clusters = groupby(clusters)
 

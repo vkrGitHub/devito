@@ -169,6 +169,9 @@ class Operator(Callable):
         clusters = clusterize(expressions)
         clusters = rewrite(clusters, mode=set_dse_mode(dse))
         self._dtype, self._dspace = clusters.meta
+        
+        #from IPython import embed
+        #embed()
 
         # Lower Clusters to a Schedule tree
         stree = st_build(clusters)

@@ -16,8 +16,11 @@ def st_build(clusters):
     """
     Create a ScheduleTree from a ClusterGroup.
     """
+    
+    print('crash here')
     # ClusterGroup -> Schedule tree
     stree = st_schedule(clusters)
+    print('nope')
 
     # Add in section nodes
     stree = st_section(stree)
@@ -35,12 +38,20 @@ def st_schedule(clusters):
     stree = ScheduleTree()
 
     mapper = OrderedDict()
+
+    #from IPython import embed
+    #embed()
+
     for c in clusters:
         pointers = list(mapper)
 
         # Find out if any of the existing nodes can be reused
         index = 0
         root = stree
+
+        #from IPython import embed
+        #embed()
+
         for it0, it1 in zip(c.itintervals, pointers):
             if it0 != it1 or it0.dim in c.atomics:
                 break

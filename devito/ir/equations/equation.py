@@ -124,7 +124,27 @@ class LoweredEq(Eq, IREq):
         iterators = build_iterators(mapper)
         intervals = build_intervals(Stencil.union(*mapper.values()))
         intervals = IntervalGroup(intervals, relations=ordering.relations)
-        ispace = IterationSpace(intervals.zero(), iterators, directions)
+        #ispace = IterationSpace(intervals.zero(), iterators, directions)
+        
+        ## Test hack
+        #ispace2 = {expr._subdomain.indices}
+        #ispace2.update(expr._subdomain.dimensions)
+        
+        ##ispace = ispace.union(ispace2)
+        
+        NIG = list(intervals.zero())
+        ladd = Interval(expr._subdomain.indices, 0, 0)
+        
+        NIG.append(ladd)
+        intervals = IntervalGroup(NIG)
+        
+        iterators[expr._subdomain.indices] = ()
+        directions[expr._subdomain.indices] = list(directions.values())[0]
+        ispace = IterationSpace(intervals, iterators, directions)
+        
+        #print('stop 1')
+        #from IPython import embed
+        #embed()
 
         # The data space is relative to the computational domain. Note that we
         # are deliberately dropping the intervals ordering (by turning `intervals`
@@ -133,6 +153,14 @@ class LoweredEq(Eq, IREq):
         intervals += [Interval(i, 0, 0) for i in ordering
                       if i not in ispace.dimensions + conditionals]
         parts = {k: IntervalGroup(build_intervals(v)) for k, v in mapper.items() if k}
+        
+        # parts hack
+        func = list(parts.keys())[0]
+        vals = list(list(parts.values())[0])
+        vals.append(ladd)
+        vals = IntervalGroup(vals)
+        parts = {func: vals}
+        
         dspace = DataSpace(intervals, parts)
 
         # Finally create the LoweredEq with all metadata attached
@@ -142,6 +170,10 @@ class LoweredEq(Eq, IREq):
         expr._ispace = ispace
         expr._conditionals = tuple(conditionals)
         expr._reads, expr._writes = detect_io(expr)
+        
+        #print('stop 2')
+        #from IPython import embed
+        #embed()
 
         return expr
 

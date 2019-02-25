@@ -1,6 +1,8 @@
 from collections import namedtuple
 
+import sympy
 from sympy import prod
+from sympy.core.cache import cacheit
 import numpy as np
 
 from devito.mpi import Distributor
@@ -336,7 +338,7 @@ class SubDomain(object):
         sub_dimensions = []
         for k, v in self.define(dimensions).items():
             if isinstance(v, Dimension):
-                print('here?')
+                #print('here?')
                 sub_dimensions.append(v)
             else:
                 try:
@@ -348,9 +350,9 @@ class SubDomain(object):
                     sub_dimensions.append(SubDimension.middle('%si' % k.name, k,
                                                               thickness_left,
                                                               thickness_right))
-                    print('or here?')
+                    #print('or here?')
                 except ValueError:
-                    print('In here init?')
+                    #print('In here init?')
                     side, thickness = v
                     if side == 'left':
                         sub_dimensions.append(SubDimension.left('%sleft' % k.name, k,
@@ -360,7 +362,7 @@ class SubDomain(object):
                                                                  thickness))
                     else:
                         raise ValueError("Expected sides 'left|right', not `%s`" % side)
-                    print('or here2?')
+                    #print('or here2?')
         self._dimensions = tuple(sub_dimensions)
 
         # Compute the SubDomain shape
@@ -453,7 +455,20 @@ class SubDomains(SubDomain):
     @classmethod
     def __indices_setup__(self, n_domains):
         if n_domains > 1:
-            indices = Dimension(name='n', spacing=1)
+
+            class DimN(Dimension):
+
+                def __new__(cls, name, spacing=None, dim_size=None):
+                    self = super().__new__(cls, name, spacing=None)
+                    self._dim_size = dim_size
+                    return self
+                
+                def _arg_defaults(self, _min=None, alias=None):
+                    size = self._dim_size
+                    dim = alias or self
+                    return {dim.min_name: _min or 0, dim.size_name: size,
+                            dim.max_name: size if size is None else size-1}
+            indices = DimN(name='n', spacing=1, dim_size=n_domains)
             return indices
         else:
             # NOTE: Error maybe?
