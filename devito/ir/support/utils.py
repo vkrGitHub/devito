@@ -165,14 +165,30 @@ def detect_flow_directions(exprs):
     mapper.update({d: {Any} for d in flatten(i.aindices for i in reads + writes)
                    if d is not None and d not in mapper})
 
+
+
     # Add in derived-dimensions parents, in case they haven't been detected yet
     mapper.update({k.parent: set(v) for k, v in mapper.items()
                    if k.is_Derived and mapper.get(k.parent, {Any}) == {Any}})
+
+
+    #print('1')
+    from IPython import embed
+    embed()
+    # Add in any dimension accosiated with subdomains present
+    try:
+        mapper.update({exprs[0].subdomain.indices: list(mapper.values())[0]})
+    except:
+        pass
 
     # Add in "free" Dimensions, ie Dimensions used as symbols rather than as
     # array indices
     mapper.update({d: {Any} for d in flatten(i.free_symbols for i in exprs)
                    if isinstance(d, Dimension) and d not in mapper})
+
+    #print('2')
+    #from IPython import embed
+    #embed()
 
     return mapper
 

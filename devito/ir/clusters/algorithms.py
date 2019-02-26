@@ -248,12 +248,11 @@ def clusterize(exprs):
             dspace = DataSpace.merge(e.dspace, *[i.dspace for i in scalars])
             # Prepare for next range
             prev = idx
+            
+            #from IPython import embed
+            #embed()
 
             clusters.append(PartialCluster(scalars + [e], ispace, dspace))
-
-
-    from IPython import embed
-    embed()
 
     # Group PartialClusters together where possible
     clusters = groupby(clusters)
