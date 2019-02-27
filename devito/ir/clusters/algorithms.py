@@ -234,6 +234,7 @@ def bump_and_contract(targets, source, sink):
 def clusterize(exprs):
     """Group a sequence of LoweredEqs into one or more Clusters."""
     clusters = ClusterGroup()
+    #print('clusterize called')
     flowmap = detect_flow_directions(exprs)
     prev = None
     for idx, e in enumerate(exprs):

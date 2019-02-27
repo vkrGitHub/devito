@@ -18,11 +18,38 @@ def detect_accesses(expr):
     to ``f`` within ``expr``. Also map ``M[None]`` to all Dimensions used in
     ``expr`` as plain symbols, rather than as array indices.
     """
+
+    def order_indices(unordered):
+        from IPython import embed
+        embed()
+        unordered = list(unordered)
+        ordered_ns = []
+        ordered_sp = []
+        
+        # use unordered[x].args here
+        
+        for i in unordered:
+            if i.is_Space:
+                ordered_sp.append(i)
+            else:
+                ordered_ns.append(i)
+        ordered = ordered_ns + ordered_sp
+        return tuple(ordered)
+
     # Compute M : F -> S
     mapper = defaultdict(Stencil)
+    
+    try:
+        external_indices = expr._subdomain.indices
+    except AttributeError:
+        external_indices = None
+    
     for e in retrieve_indexed(expr, mode='all', deep=True):
         f = e.base.function
-        for a in e.indices:
+        indices = e.indices
+        if bool(external_indices):
+            indices = order_indices(indices + (external_indices, ))
+        for a in indices:
             if isinstance(a, Dimension):
                 mapper[f][a].update([0])
             d = None
@@ -38,6 +65,9 @@ def detect_accesses(expr):
     # Compute M[None]
     mapper[None] = Stencil([(i, 0) for i in retrieve_terminals(expr)
                             if isinstance(i, Dimension)])
+
+    from IPython import embed
+    embed()
 
     return mapper
 
@@ -173,11 +203,9 @@ def detect_flow_directions(exprs):
 
 
     #print('1')
-    from IPython import embed
-    embed()
     # Add in any dimension accosiated with subdomains present
     try:
-        mapper.update({exprs[0].subdomain.indices: list(mapper.values())[0]})
+        mapper.update({exprs[0]._subdomain.indices: list(mapper.values())[0]})
     except:
         pass
 
@@ -186,7 +214,7 @@ def detect_flow_directions(exprs):
     mapper.update({d: {Any} for d in flatten(i.free_symbols for i in exprs)
                    if isinstance(d, Dimension) and d not in mapper})
 
-    #print('2')
+    #print('exiting detect_flow_directions')
     #from IPython import embed
     #embed()
 

@@ -126,6 +126,9 @@ class LoweredEq(Eq, IREq):
         intervals = IntervalGroup(intervals, relations=ordering.relations)
         #ispace = IterationSpace(intervals.zero(), iterators, directions)
         
+        #from IPython import embed
+        #embed()
+        
         ## Test hack
         #ispace2 = {expr._subdomain.indices}
         #ispace2.update(expr._subdomain.dimensions)
@@ -160,9 +163,16 @@ class LoweredEq(Eq, IREq):
         vals.append(ladd)
         vals = IntervalGroup(vals)
         parts = {func: vals}
-        
-        dspace = DataSpace(intervals, parts)
 
+        dspace = DataSpace(intervals, parts)
+        
+        #from IPython import embed
+        #embed()
+
+        try:
+            subdomain = expr._subdomain
+        except:
+            subdomain = None
         # Finally create the LoweredEq with all metadata attached
         expr = super(LoweredEq, cls).__new__(cls, expr.lhs, expr.rhs, evaluate=False)
         expr._is_Increment = getattr(input_expr, 'is_Increment', False)
@@ -170,7 +180,9 @@ class LoweredEq(Eq, IREq):
         expr._ispace = ispace
         expr._conditionals = tuple(conditionals)
         expr._reads, expr._writes = detect_io(expr)
-        
+        if bool(subdomain):
+            expr._subdomain = subdomain
+
         #print('stop 2')
         #from IPython import embed
         #embed()

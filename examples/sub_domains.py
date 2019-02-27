@@ -38,7 +38,11 @@ f = TimeFunction(name='f', grid=grid)
 
 x, y = grid.dimensions
 
-eq = Eq(f, x, subdomain = grid.subdomains['MyDomains'])
+#eq = Eq(f, x, subdomain = grid.subdomains['MyDomains'])
+eq = Eq(f, 1, subdomain = grid.subdomains['MyDomains'])
+
+#from IPython import embed
+#embed()
 
 op = Operator(eq)
     
