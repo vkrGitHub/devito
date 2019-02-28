@@ -20,30 +20,32 @@ def detect_accesses(expr):
     """
 
     def order_indices(unordered):
-        from IPython import embed
-        embed()
         unordered = list(unordered)
         ordered_ns = []
         ordered_sp = []
-        
-        # use unordered[x].args here
-        
         for i in unordered:
-            if i.is_Space:
-                ordered_sp.append(i)
-            else:
-                ordered_ns.append(i)
+            if isinstance(i, Dimension):
+                if i.is_Space:
+                    ordered_sp.append(i)
+                else:
+                    ordered_ns.append(i)
+            if bool(i.args):
+                dim = [d for d in i.args if isinstance(d, Dimension)]
+                if len(dim) > 1:
+                    raise ValueError("More than one dim. Need to add additional checks.")
+                if dim[0].is_Space:
+                    ordered_sp.append(i)
+                else:
+                    ordered_ns.append(i)
         ordered = ordered_ns + ordered_sp
         return tuple(ordered)
 
     # Compute M : F -> S
     mapper = defaultdict(Stencil)
-    
     try:
         external_indices = expr._subdomain.indices
     except AttributeError:
         external_indices = None
-    
     for e in retrieve_indexed(expr, mode='all', deep=True):
         f = e.base.function
         indices = e.indices
@@ -65,9 +67,6 @@ def detect_accesses(expr):
     # Compute M[None]
     mapper[None] = Stencil([(i, 0) for i in retrieve_terminals(expr)
                             if isinstance(i, Dimension)])
-
-    from IPython import embed
-    embed()
 
     return mapper
 
@@ -152,6 +151,27 @@ def detect_flow_directions(exprs):
     directions to evaluate ``exprs`` so that the information "naturally
     flows" from an iteration to another.
     """
+
+    def order_indices(unordered):
+        ordered_ns = []
+        ordered_sp = []
+        for i in unordered:
+            if isinstance(i, Dimension):
+                if i.is_Space:
+                    ordered_sp.append(i)
+                else:
+                    ordered_ns.append(i)
+            if bool(i.args):
+                dim = [d for d in i.args if isinstance(d, Dimension)]
+                if len(dim) > 1:
+                    raise ValueError("More than one dim. Need to add additional checks.")
+                if dim[0].is_Space:
+                    ordered_sp.append(i)
+                else:
+                    ordered_ns.append(i)
+        ordered = ordered_ns + ordered_sp
+        return ordered
+
     exprs = as_tuple(exprs)
 
     writes = [Access(i.lhs, 'W') for i in exprs]
@@ -192,31 +212,25 @@ def detect_flow_directions(exprs):
                 mapper[d].add(Any)
 
     # Add in any encountered Dimension
-    mapper.update({d: {Any} for d in flatten(i.aindices for i in reads + writes)
-                   if d is not None and d not in mapper})
+    indices = flatten(i.aindices for i in reads + writes)
 
+    try:
+        additional_indices = [expr._subdomain.indices for expr in exprs] # FIXME: prone to break
+    except AttributeError:
+        additional_indices = []
+    if bool(additional_indices):
+        indices = order_indices(indices+additional_indices)
 
+    mapper.update({d: {Any} for d in indices if d is not None and d not in mapper})
 
     # Add in derived-dimensions parents, in case they haven't been detected yet
     mapper.update({k.parent: set(v) for k, v in mapper.items()
                    if k.is_Derived and mapper.get(k.parent, {Any}) == {Any}})
 
-
-    #print('1')
-    # Add in any dimension accosiated with subdomains present
-    try:
-        mapper.update({exprs[0]._subdomain.indices: list(mapper.values())[0]})
-    except:
-        pass
-
     # Add in "free" Dimensions, ie Dimensions used as symbols rather than as
     # array indices
     mapper.update({d: {Any} for d in flatten(i.free_symbols for i in exprs)
                    if isinstance(d, Dimension) and d not in mapper})
-
-    #print('exiting detect_flow_directions')
-    #from IPython import embed
-    #embed()
 
     return mapper
 

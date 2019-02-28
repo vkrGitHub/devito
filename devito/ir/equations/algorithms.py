@@ -32,7 +32,35 @@ def dimension_sort(expr):
                                      if isinstance(d, Dimension)])
         return tuple(relation)
 
+    def order_relations(unordered):
+        unordered = list(unordered)
+        ordered_ns = []
+        ordered_sp = []
+        for i in unordered:
+            if isinstance(i, Dimension):
+                if i.is_Space:
+                    ordered_sp.append(i)
+                else:
+                    ordered_ns.append(i)
+            if bool(i.args):
+                dim = [d for d in i.args if isinstance(d, Dimension)]
+                if len(dim) > 1:
+                    raise ValueError("More than one dim. Need to add additional checks.")
+                if dim[0].is_Space:
+                    ordered_sp.append(i)
+                else:
+                    ordered_ns.append(i)
+        ordered = ordered_ns + ordered_sp
+        return tuple(ordered)
+
     relations = {handle_indexed(i) for i in retrieve_indexed(expr, mode='all')}
+
+    try:
+        external_relations = expr._subdomain.indices
+    except AttributeError:
+        external_relations = None
+    if bool(external_relations):
+        relations = {order_relations(relations.pop() + (external_relations, ))}
 
     # Add in leftover free dimensions (not an Indexed' index)
     extra = set([i for i in expr.free_symbols if isinstance(i, Dimension)])
