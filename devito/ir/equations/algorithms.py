@@ -45,7 +45,7 @@ def dimension_sort(expr):
             if bool(i.args):
                 dim = [d for d in i.args if isinstance(d, Dimension)]
                 if len(dim) > 1:
-                    raise ValueError("More than one dim. Need to add additional checks.")
+                    raise ValueError("More than one dimension present. Broken.")
                 if dim[0].is_Space:
                     ordered_sp.append(i)
                 else:
