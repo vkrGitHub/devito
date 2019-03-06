@@ -437,7 +437,7 @@ class SubDomains(SubDomain):
         extent = kwargs.get('extent')
         self._n_domains = n_domains
         self._extent = extent
-        self._indices = None
+        #self._indices = None
 
     def __subdomain_finalize__(self, dimensions, shape):
         super(SubDomains, self).__subdomain_finalize__(dimensions, shape)
