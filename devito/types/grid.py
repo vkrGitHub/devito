@@ -464,7 +464,7 @@ class SubDomains(SubDomain):
                     self._dim_size = dim_size
                     return self
                 
-                def _arg_defaults(self, _min=None, alias=None):
+                def _arg_defaults(self, _min=None, size=None, alias=None):
                     size = self._dim_size
                     dim = alias or self
                     return {dim.min_name: _min or 0, dim.size_name: size,

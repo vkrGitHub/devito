@@ -316,7 +316,8 @@ class Operator(Callable):
         for p in self.output:
             p._arg_apply(args[p.name], kwargs.get(p.name))
 
-    @cached_property
+    #@cached_property
+    @property
     def _known_arguments(self):
         """The arguments that can be passed to ``apply`` when running the Operator."""
         ret = set.union(*[set(i._arg_names) for i in self.input + self.dimensions])

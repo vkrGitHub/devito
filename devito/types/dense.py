@@ -732,7 +732,7 @@ class DiscreteFunction(AbstractCachedFunction, ArgProvider):
         """Tuple of argument names introduced by this function."""
         return (self.name,)
 
-    @memoized_meth
+    #@memoized_meth
     def _arg_defaults(self, alias=None):
         """
         A map of default argument values defined by this symbol.
@@ -744,6 +744,8 @@ class DiscreteFunction(AbstractCachedFunction, ArgProvider):
         """
         key = alias or self
         args = ReducerMap({key.name: self._data_buffer})
+        
+        #from IPython import embed; embed()
 
         # Collect default dimension arguments from all indices
         for i, s, o in zip(key.indices, self.shape, self.staggered):

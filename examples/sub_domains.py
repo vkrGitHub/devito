@@ -19,6 +19,8 @@ xM = Constant(name='xM', dtype=int)
 ym = Constant(name='ym', dtype=int)
 yM = Constant(name='yM', dtype=int)
 
+dummy_const = Constant(name='dummy_const', dtype=int)
+
 for j in range(0,extent.shape[0]):
     extent[j,0,0] = j                          # xmin
     extent[j,0,1] = j                          # xmax
@@ -37,35 +39,33 @@ subs = MyDomains(n_domains=n_domains, extent=extent)
 grid = Grid(extent=(10, 10), shape=(10, 10), origin=(0, 0), subdomains = (subs))
 x, y = grid.dimensions
 
-#f = TimeFunction(name='f', grid=grid)
-#f.data[:] = 0.0
-#eq = Eq(f.dt, 1, subdomain = grid.subdomains['MyDomains'])
-#stencil = solve(eq, f.forward)
-#op = Operator(Eq(f.forward, stencil))
-#op.apply(time_m=0, time_M=2, dt=1)
-
 f = Function(name='f', grid=grid)
 f.data[:] = 0.0
 eq = Eq(f, 1, subdomain = grid.subdomains['MyDomains'])
 
-#eq_xl = Eq(xm, extent[0,0,0])
-#eq_xr = Eq(xM, extent[0,0,1])
-#eq_yl = Eq(ym, extent[0,1,0])
-#eq_yr = Eq(yM, extent[0,1,1])
-#eq_xl = Eq(xm, subs.indices)
-#eq_xr = Eq(xM, subs.indices)
-eq_yl = Eq(ym, 1)
-#eq_yr = Eq(yM, 1)
+n = subs.indices
 
-#op = Operator([eq_yl, eq_yr])
-#op = Operator([eq, eq_xl, eq_xr, eq_yl, eq_yr])
-op = Operator(eq)
+bounds_xm = Function(name='bounds_xm', dimensions = (n, ), shape = (n_domains, ))
+bounds_xM = Function(name='bounds_xM', dimensions = (n, ), shape = (n_domains, ))
+bounds_ym = Function(name='bounds_ym', dimensions = (n, ), shape = (n_domains, ))
+bounds_yM = Function(name='bounds_yM', dimensions = (n, ), shape = (n_domains, ))
 
-#op = Operator(eq_yl)
+bounds_xm.data[:] = extent[:,0,0]
+bounds_xM.data[:] = extent[:,0,1]
+bounds_ym.data[:] = extent[:,1,0]
+bounds_yM.data[:] = extent[:,1,1]
+
+dummy_func = Function(name='dummy_func', dimensions = (n, ), shape = (n_domains, ))
+
+eq_xm = Eq(xm, bounds_xm[n])
+eq_xM = Eq(xM, bounds_xM[n])
+eq_ym = Eq(ym, bounds_ym[n])
+eq_yM = Eq(yM, bounds_yM[n])
+dummy_eq = Eq(dummy_func[n], dummy_const)
+
+op = Operator([eq_xm, eq_xM, eq_ym, eq_yM, eq])
+print(op.ccode)
 
 #op.apply()
 
-print(op.ccode)
-
-from IPython import embed
-embed()
+from IPython import embed; embed()
