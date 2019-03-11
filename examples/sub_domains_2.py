@@ -14,21 +14,14 @@ from math import floor
 n_domains = 10
 extent = np.zeros((n_domains,2,2), dtype=int)
 
-#xm = Constant(name='xm', dtype=int)
-#xM = Constant(name='xM', dtype=int)
-#ym = Constant(name='ym', dtype=int)
-#yM = Constant(name='yM', dtype=int)
-
 dummy_const = Constant(name='dummy_const', dtype=int)
 dummy_const = 0
 
 for j in range(0,extent.shape[0]):
-    extent[j,0,0] = j                          # xmin
-    extent[j,0,1] = n_domains-1-j                          # xmax
-    #extent[j,1,0] = j-floor(j/2)               # ymin
-    #extent[j,1,1] = n_domains-1-j-floor(j/2)   # ymax
-    extent[j,1,0] = floor(j/2)                          # xmin
-    extent[j,1,1] = floor(j/2)   
+    extent[j,0,0] = j
+    extent[j,0,1] = n_domains-1-j
+    extent[j,1,0] = floor(j/2)
+    extent[j,1,1] = floor(j/2)
 
 class MyDomains(SubDomains):
     name = 'MyDomains'
@@ -36,15 +29,15 @@ class MyDomains(SubDomains):
         x, y = dimensions
         return {x: ('middle', 0, 0),
                 y: ('middle', 0, 0)}
-    
+
 subs = MyDomains(n_domains=n_domains, extent=extent)
-    
+
 grid = Grid(extent=(10, 10), shape=(10, 10), origin=(0, 0), subdomains = (subs))
 x, y = grid.dimensions
 
-f = Function(name='f', grid=grid)
+f = TimeFunction(name='f', grid=grid)
 f.data[:] = 0.0
-eq = Eq(f, 1, subdomain = grid.subdomains['MyDomains'])
+eq = Eq(f.dt, 1, subdomain = grid.subdomains['MyDomains'])
 
 n = subs.indices
 
@@ -65,19 +58,15 @@ eq_xM = Eq(subs.dimensions[0]._symbolic_thickness('xi')[1], bounds_xM[n])
 eq_ym = Eq(subs.dimensions[1]._symbolic_thickness('yi')[0], bounds_ym[n])
 eq_yM = Eq(subs.dimensions[1]._symbolic_thickness('yi')[1], bounds_yM[n])
 
-#eq_xm = Eq(xm, bounds_xm[n])
-#eq_xM = Eq(xM, bounds_xM[n])
-#eq_ym = Eq(ym, bounds_ym[n])
-#eq_yM = Eq(yM, bounds_yM[n])
-
 dummy_eq = Eq(dummy_func[n], dummy_const)
 
-op = Operator([eq_xm, eq_xM, eq_ym, eq_yM, dummy_eq, eq])
-#op = Operator(eq)
+stencil = Eq(f.forward, solve(eq, f.forward))
+
+op = Operator([eq_xm, eq_xM, eq_ym, eq_yM, dummy_eq, stencil])
 print(op.ccode)
 
-op.apply()
+op.apply(t_m=0, t_M=3, dt=1)
 
-print(f.data.transpose())
+print(f.data[-1,:,:].transpose())
 
 from IPython import embed; embed()
