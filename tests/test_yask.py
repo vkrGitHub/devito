@@ -351,7 +351,7 @@ class TestOperatorSimple(object):
         grid = Grid(shape=(4, 4, 4))
         u = TimeFunction(name='yu4D', grid=grid, space_order=0)
         u.data[:] = 0.
-        op = Operator(Eq(u, u + 1.))
+        op = Operator(Eq(u.forward, u + 1.))
         assert 'run_solution' in str(op)
         assert 'pragma omp' not in str(op)
 
@@ -588,8 +588,7 @@ class TestIsotropicAcoustic(object):
         Full acoustic wave test, forward + adjoint operators
         """
         from test_adjoint import TestAdjoint
-        TestAdjoint().test_adjoint_F('layers', self.shape, self.kernel,
-                                     self.space_order, self.nbl)
+        TestAdjoint().test_adjoint_F('layers', self.shape, self.kernel, self.space_order)
 
     @switchconfig(openmp=True)
     def test_acoustic_adjoint_omp(self):
@@ -598,5 +597,4 @@ class TestIsotropicAcoustic(object):
         sparse loops.
         """
         from test_adjoint import TestAdjoint
-        TestAdjoint().test_adjoint_F('layers', self.shape, self.kernel,
-                                     self.space_order, self.nbl)
+        TestAdjoint().test_adjoint_F('layers', self.shape, self.kernel, self.space_order)
