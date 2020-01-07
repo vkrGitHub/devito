@@ -1,4 +1,4 @@
-name: devito
+name: devito-vkr
 channels:
   - defaults
   - conda-forge
